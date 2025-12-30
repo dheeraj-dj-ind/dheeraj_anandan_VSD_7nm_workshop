@@ -94,22 +94,27 @@ For the simulation process, we will be using the opensource spice simulator - Ng
 The spice deck used for characterization of nfet is [NFET SPICE](./nfet_char.spice)
 
 - NFET schematic 
+
 ![scehmatic](images/Screenshot%20from%202025-12-27%2014-46-04.png)
 
 - Id vs Vgs 
+
 ![id vs vgs](images/Screenshot%20from%202025-12-27%2014-30-30.png)
 
 - Id vs Vd
+
 ![Id vs Vd](images/Screenshot%20from%202025-12-27%2014-31-03.png)
 
 ## 2.2 Inverter Characteristics using 7nm FinFETs
 The spice deck using for characeterizing the inverter is [SPICE Deck](./attachments/inverter_vtc.spice)
 
 - NgSpice console output 
+
 ![spice window1](images/Screenshot%20from%202025-12-27%2018-04-40.png)
 ![spice window2](images/Screenshot%20from%202025-12-27%2018-05-20.png)
 
 - DC Analysis: VTC Curve (Vin vs Vout)
+
 ![VTC](images/Screenshot%20from%202025-12-27%2017-43-56.png)
 
 ```bash 
