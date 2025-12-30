@@ -1,0 +1,296 @@
+** sch_path: /home/vsduser/Desktop/asap_7nm_Xschem
+**.subckt inverter_vtc
+
+
+V1 nfet_in GND pulse({pulse_vlo} {pulse_vhi} 20p 10p 10p 40p 500p 1)
+V2 VDD GND {VDD_V}
+Xpfet1 nfet_out nfet_in VDD VDD asap_7nm_pfet l=7e-009 nfin={nfin_pmos}
+Xnfet1 nfet_out nfet_in GND GND asap_7nm_nfet l=7e-009 nfin={nfin_nmos}
+
+**** begin user architecture code
+
+.param nfin_pmos = 14
+.param nfin_nmos = 14
+.param VDD_V    = 0.7
+.csparam VDD_V  = 'VDD_V'
+.csparam VLOW   = '0.2 * VDD_V'
+.csparam VMID   = '0.5 * VDD_V'
+.csparam VHIGH  = '0.8 * VDD_V'
+
+*Unique Voltage value = ASCI{dheeraj} = {100+104+101+101+114+97+106} = 723
+.param Vuniq = 0.723
+
+.param pulse_vlo = '0 + Vuniq'
+.param pulse_vhi = 'VDD_V + Vuniq'
+
+.temp 27
+
+.control
+    let nfin_typ    = 14
+    let nfin_min    = nfin_typ - (nfin_typ/ 2)
+    let nfin_max    = nfin_typ + (nfin_typ/ 2)
+    
+    let nfin_p = nfin_min * 1.0
+    let nfin_n = nfin_min * 1.0
+
+    echo "Nfin_P,Nfin_N,VTC,Id,Av_max,vil,vih,vol,voh,NML,NMH,gm_max,tr,tf,t_delay,f_delay_GHz,tpr,tpf,t_pd,f_pd_GHz,trans_current,energy_per_cycle,avg_power"  > cmos_inverter.csv
+ 
+
+    dowhile nfin_p <= nfin_max
+        let nfin_n = nfin_min        
+        dowhile nfin_n <= nfin_max
+            echo "--------------------"
+            echo "Nfin_P=$&nfin_p, Nfin_N=$&nfin_n"
+            echo "--------------------"
+            
+            alterparam nfin_pmos = $&nfin_p
+            alterparam nfin_nmos = $&nfin_n
+            reset
+            
+            ** First run DC          
+            dc V1 0 0.7 1m
+            run
+            *plot nfet_out nfet_in
+
+            *******************
+            * DC measurements
+            *******************
+            * Switching Threshold (VM)
+            meas DC VM FIND V(nfet_in) WHEN V(nfet_out)=V(nfet_in)
+
+            * Drain Current (Id)
+            let Id = V2#branch
+            *plot Id
+            meas DC Id_max MIN Id
+
+            * Gain (Av)
+            let gain_Av = abs(deriv(nfet_out))
+            *plot gain_Av
+            meas DC Av_max MAX gain_Av
+
+            * Vil, Vih, Vol, Voh, Noise Margin
+            let dVout_dVin = deriv(nfet_out)
+            meas DC vil FIND V(Vin) WHEN dVout_dVin=-1 cross=1
+            meas DC voh FIND V(nfet_out) WHEN dVout_dVin=-1 cross=1
+            meas DC vih FIND V(nfet_in) WHEN dVout_dVin=-1 cross=2
+            meas DC vol FIND V(nfet_out) WHEN dVout_dVin=-1 cross=2
+            let NML = vil - vol
+            let NMH = voh - vih
+            print NML
+            print NMH
+
+            * Transconductance, Gm
+            let gm = real(deriv(Id, nfet_in))
+            *plot gm
+            meas DC gm_max MAX gm
+
+            * Output Resistance, Rout
+            let R_out= deriv(nfet_out, Id)
+            *plot R_out
+
+            shell sh -c "printf '%d,%d,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g' $&nfin_p $&nfin_n $&VM $&Id_max $&Av_max $&vil $&vih $&vol $&voh $&NML $&NMH $&gm_max >> cmos_inverter.csv"
+
+            *************************
+            * Transient measurements
+            *************************
+            tran 1e-12 100e-12
+            *plot nfet_in nfet_out
+
+            * Rise time, Fall time
+            meas TRAN t_rise TRIG v(nfet_out) VAL=VLOW RISE=1 TARG v(nfet_out) VAL=VHIGH RISE=1
+            meas TRAN t_fall TRIG v(nfet_out) VAL=VHIGH FALL=1 TARG v(nfet_out) VAL=VLOW FALL=1
+            let t_slew      = t_rise + t_fall            
+            let f_slew_Hz   = 1/ t_slew
+            let f_slew_GHz  = f_slew_Hz/ 1e9
+            print t_slew
+            print f_slew_Hz           
+
+            * Propagation Delay, Frequency (prop. delay based)
+            meas TRAN tpHL TRIG v(nfet_in) VAL=VMID RISE=1 TARG v(nfet_out) VAL=VMID FALL=1
+            meas TRAN tpLH TRIG v(nfet_in) VAL=VMID FALL=1 TARG v(nfet_out) VAL=VMID RISE=1
+            let t_pd        = (tpHL + tpLH)/ 2            
+            let f_pd_Hz     = 1/ (2 * t_pd)
+            let f_pd_GHz    = f_pd_Hz/ 1e9
+            print t_pd
+            print f_pd_Hz
+
+            * Id, Power
+            let trans_current = V2#branch
+            *plot Id_transient
+            meas TRAN Id_peak_transient MIN Id_transient
+            * Integral t1 to t2:
+            *   t1 = start of pulse waveform (=PULSE_TD)
+            *   t2 = end   of pulse waveform (= t1 + [tr+pw+tf])
+            let t1 = 20p
+            let t2 = t1 + (10p+40p+10p)
+            meas TRAN Integral_Id INTEG Id_transient from=2e-11 to=6e-11
+            let energy_per_cycle = abs(Integral_Id * VDD_V)
+            let avg_power = (energy_per_cycle / 60e-12)
+            print energy_per_cycle
+            print avg_power
+
+            shell sh -c "printf ',%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g,%.4g' $&tr $&tf $&t_delay $&f_slew_GHz $&tpr $&tpf $&t_pd $&f_pd_GHz $&Id_peak_transient $&energy_per_cycle $&avg_power >> cmos_inverter.csv"
+            echo "" >> cmos_inverter.csv
+
+            let nfin_n = nfin_n + 1
+            alterparam nfin_nmos = $&nfin_n
+        end
+        let nfin_p = nfin_p + 1
+    end
+
+.endc
+
+
+**** end user architecture code
+**.ends
+.GLOBAL GND
+**** begin user architecture code
+
+.subckt asap_7nm_pfet S G D B l=7e-009 nfin=14
+	npmos_finfet S G D B BSIMCMG_osdi_P l={l} nfin={nfin}
+.ends asap_7nm_pfet
+
+.model BSIMCMG_osdi_P BSIMCMG_va (
++ TYPE = 0
+
+************************************************************
+*                         general                          *
+************************************************************
++version = 107             bulkmod = 1               igcmod  = 1               igbmod  = 0
++gidlmod = 1               iimod   = 0               geomod  = 1               rdsmod  = 0
++rgatemod= 0               rgeomod = 0               shmod   = 0               nqsmod  = 0
++coremod = 0               cgeomod = 0               capmod  = 0               tnom    = 25
++eot     = 1e-009          eotbox  = 1.4e-007        eotacc  = 3e-010          tfin    = 6.5e-009
++toxp    = 2.1e-009        nbody   = 1e+022          phig    = 4.9278          epsrox  = 3.9
++epsrsub = 11.9            easub   = 4.05            ni0sub  = 1.1e+016        bg0sub  = 1.17
++nc0sub  = 2.86e+025       nsd     = 2e+026          ngate   = 0               nseg    = 5
++l       = 2.1e-008        xl      = 1e-009          lint    = -2.5e-009       dlc     = 0
++dlbin   = 0               hfin    = 3.2e-008        deltaw  = 0               deltawcv= 0
++sdterm  = 0               epsrsp  = 3.9             nfin    = 1
++toxg    = 1.8e-009
+************************************************************
+*                            dc                            *
+************************************************************
++cit     = 0               cdsc    = 0.003469        cdscd   = 0.001486        dvt0    = 0.05
++dvt1    = 0.36            phin    = 0.05            eta0    = 0.094           dsub    = 0.24
++k1rsce  = 0               lpe0    = 0               dvtshift= 0               qmfactor= 0
++etaqm   = 0.54            qm0     = 2.183e-012      pqm     = 0.66            u0      = 0.0237
++etamob  = 4               up      = 0               ua      = 1.133           eu      = 0.05
++ud      = 0.0105          ucs     = 0.2672          rdswmin = 0               rdsw    = 200
++wr      = 1               rswmin  = 0               rdwmin  = 0               rshs    = 0
++rshd    = 0               vsat    = 60000           deltavsat= 0.17            ksativ  = 1.592
++mexp    = 2.491           ptwg    = 25              pclm    = 0.01            pclmg   = 1
++pdibl1  = 800             pdibl2  = 0.005704        drout   = 4.97            pvag    = 200
++fpitch  = 2.7e-008        rth0    = 0.15            cth0    = 1.243e-006      wth0    = 2.6e-007
++lcdscd  = 0               lcdscdr = 0               lrdsw   = 1.3             lvsat   = 1441
+************************************************************
+*                         leakage                          *
+************************************************************
++aigc    = 0.007           bigc    = 0.0015          cigc    = 1               dlcigs  = 5e-009
++dlcigd  = 5e-009          aigs    = 0.006           aigd    = 0.006           bigs    = 0.001944
++bigd    = 0.001944        cigs    = 1               cigd    = 1               poxedge = 1.152
++agidl   = 2e-012          agisl   = 2e-012          bgidl   = 1.5e+008        bgisl   = 1.5e+008
++egidl   = 1.142           egisl   = 1.142
+************************************************************
+*                            rf                            *
+************************************************************
+************************************************************
+*                         junction                         *
+************************************************************
+************************************************************
+*                       capacitance                        *
+************************************************************
++cfs     = 0               cfd     = 0               cgso    = 1.6e-010        cgdo    = 1.6e-010
++cgsl    = 0               cgdl    = 0               ckappas = 0.6             ckappad = 0.6
++cgbo    = 0               cgbl    = 0
+************************************************************
+*                       temperature                        *
+************************************************************
++tbgasub = 0.000473        tbgbsub = 636             kt1     = 0               kt1l    = 0
++ute     = -1.2            utl     = 0               ua1     = 0.001032        ud1     = 0
++ucste   = -0.004775       at      = 0.001           ptwgt   = 0.004           tmexp   = 0
++prt     = 0               tgidl   = -0.007          igt     = 2.5
+************************************************************
+*                          noise                           *
+************************************************************
+**)
+.control
+pre_osdi /home/vsduser/Desktop/asap_7nm_Xschem/bsimcmg.osdi
+.endc
+
+
+
+.subckt asap_7nm_nfet S G D B l=7e-009 nfin=14
+	nnmos_finfet S G D B BSIMCMG_osdi_N l={l} nfin={nfin}
+.ends asap_7nm_nfet
+
+.model BSIMCMG_osdi_N BSIMCMG_va (
++ TYPE = 1
+************************************************************
+*                         general                          *
+************************************************************
++version = 107             bulkmod = 1               igcmod  = 1               igbmod  = 0
++gidlmod = 1               iimod   = 0               geomod  = 1               rdsmod  = 0
++rgatemod= 0               rgeomod = 0               shmod   = 0               nqsmod  = 0
++coremod = 0               cgeomod = 0               capmod  = 0               tnom    = 25
++eot     = 1e-009          eotbox  = 1.4e-007        eotacc  = 1e-010          tfin    = 6.5e-009
++toxp    = 2.1e-009        nbody   = 1e+022          phig    = 4.2466          epsrox  = 3.9
++epsrsub = 11.9            easub   = 4.05            ni0sub  = 1.1e+016        bg0sub  = 1.17
++nc0sub  = 2.86e+025       nsd     = 2e+026          ngate   = 0               nseg    = 5
++l       = 2.1e-008        xl      = 1e-009          lint    = -2e-009         dlc     = 0
++dlbin   = 0               hfin    = 3.2e-008        deltaw  = 0               deltawcv= 0
++sdterm  = 0               epsrsp  = 3.9             nfin    = 1
++toxg    = 1.80e-009
+************************************************************
+*                            dc                            *
+************************************************************
++cit     = 0               cdsc    = 0.01            cdscd   = 0.01            dvt0    = 0.05
++dvt1    = 0.47            phin    = 0.05            eta0    = 0.07            dsub    = 0.35
++k1rsce  = 0               lpe0    = 0               dvtshift= 0               qmfactor= 2.5
++etaqm   = 0.54            qm0     = 0.001           pqm     = 0.66            u0      = 0.0303
++etamob  = 2               up      = 0               ua      = 0.55            eu      = 1.2
++ud      = 0               ucs     = 1               rdswmin = 0               rdsw    = 200
++wr      = 1               rswmin  = 0               rdwmin  = 0               rshs    = 0
++rshd    = 0               vsat    = 70000           deltavsat= 0.2             ksativ  = 2
++mexp    = 4               ptwg    = 30              pclm    = 0.05            pclmg   = 0
++pdibl1  = 0               pdibl2  = 0.002           drout   = 1               pvag    = 0
++fpitch  = 2.7e-008        rth0    = 0.225           cth0    = 1.243e-006      wth0    = 2.6e-007
++lcdscd  = 5e-005          lcdscdr = 5e-005          lrdsw   = 0.2             lvsat   = 0
+************************************************************
+*                         leakage                          *
+************************************************************
++aigc    = 0.014           bigc    = 0.005           cigc    = 0.25            dlcigs  = 1e-009
++dlcigd  = 1e-009          aigs    = 0.0115          aigd    = 0.0115          bigs    = 0.00332
++bigd    = 0.00332         cigs    = 0.35            cigd    = 0.35            poxedge = 1.1
++agidl   = 1e-012          agisl   = 1e-012          bgidl   = 10000000        bgisl   = 10000000
++egidl   = 0.35            egisl   = 0.35
+************************************************************
+*                            rf                            *
+************************************************************
+************************************************************
+*                         junction                         *
+************************************************************
+************************************************************
+*                       capacitance                        *
+************************************************************
++cfs     = 0               cfd     = 0               cgso    = 1.6e-010        cgdo    = 1.6e-010
++cgsl    = 0               cgdl    = 0               ckappas = 0.6             ckappad = 0.6
++cgbo    = 0               cgbl    = 0
+************************************************************
+*                       temperature                        *
+************************************************************
++tbgasub = 0.000473        tbgbsub = 636             kt1     = 0               kt1l    = 0
++ute     = -0.7            utl     = 0               ua1     = 0.001032        ud1     = 0
++ucste   = -0.004775       at      = 0.001           ptwgt   = 0.004           tmexp   = 0
++prt     = 0               tgidl   = -0.007          igt     = 2.5
+************************************************************
+*                          noise                           *
+************************************************************
+**)
+.control
+pre_osdi /home/vsduser/Desktop/asap_7nm_Xschem/bsimcmg.osdi
+.endc
+
+
+**** end user architecture code
+.end
