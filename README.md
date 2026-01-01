@@ -394,12 +394,14 @@ The spice file for the transient analysis is [here](/bandgap/bangap_trans.spice)
 
 ### Characterization Table
 
-|S.No.|Vdd (V)|Temp °C |Vref(mv)|Line Regulation (mv/V)|Startup Time|
-|  1. | 0.8   |   27   |  143.9 |     2.056337e+02     |            
-|  2. | 0.9   |   27   |  158.9 |     2.270246e+02     |
-|  3. | 1.0   |   27   |  101.2 |     2.525744e+02     |
-|  4. | 1.0   |  -40   |  416.1 |     2.434650e+02     |
-|  5. | 1.0   |  125   |  219.0 |     2.79293-e+=2     |
+| S.No. | Vdd (V) | Temp (°C) | Vref (mV) | Line Regulation (mV/V) | Startup Time |
+|-------|---------|-----------|-----------|-------------------------|--------------|
+| 1     | 0.8     | 27        | 143.9     | 205.63                  | -            |
+| 2     | 0.9     | 27        | 158.9     | 227.02                  | -            |
+| 3     | 1.0     | 27        | 101.2     | 252.57                  | -            |
+| 4     | 1.0     | -40       | 416.1     | 243.47                  | -            |
+| 5     | 1.0     | 125       | 219.0     | 279.29                  | -            |
+
 
 - Temperature Sweep
 Using the below SPICE code, we print the Vref from -40°C to 125°C in steps of 1 
