@@ -12,6 +12,7 @@ This is a 10-day workshop on "FinFET Circuit Design and Characterization using A
 
 ## 1.3 CMOS Evolution 
 - Beyond a certain node size, Denard scaling was observed to be deifficult to follow, thus causing device scaling to include next geeration innvoations such as Patterning, using different Channel Material, Gate Stack, Interconnection Material, Device Architecture, Chiplet/3D integration. 
+
 ![elolution](images/Screenshot%202025-12-26%20125006.png)
 
 ## 1.4 Introduction to FinFETs
@@ -75,11 +76,14 @@ FEOL innovations affected design rules changes that resulted in modified ways to
 
 ### 1.5.2 Standard Cell Area Scaling
 ![fin depopulation](images/Screenshot%202025-12-26%20180008.png)
+
 - Standard cell area scaling in FinFET technologies refers to how the physical footprint of logic standard cells (like INV, NAND2, etc.) shrinks as the front‑end device geometries and cell architecture are scaled from node to node.
 - Area can be decreased by modifying vertical (cell height) or horizaontal dimensions (cell width) 
 - Fin depopulation is used to scale the cell height and also reduce capacitive load on standard cell inputs.
 - Diffusion break prevents cross talk between transistors. 
+
 ![diff break](images/Screenshot%202025-12-26%20181417.png)
+
 - Double Diffusion Break - Diffusion Break exists between two polysilicon or gate lines and cuts through active STI regions.
 - Single Break - takes only one polysilicon and cuts through active region. 
 - Contact Over Field Gate - Gate contact is placed directly on STI
@@ -87,20 +91,24 @@ FEOL innovations affected design rules changes that resulted in modified ways to
 
 ### 1.5.3 Parasitic Resistance
 ![para resistance](images/Screenshot%202025-12-26%20215628.png)
+
 - Parasitic resistance is important in transistors.
 - In planar transistors, the width of contact Wc is similar to width of channel Wg, where as in FinFETs, width of channel becomes smaller.
 - In GAA, the channel length is even smaller because of stacking nature of device.
 - In CFETs, extrinsic reistance is expected to by high.
+
 ![para resistance 2](images/Screenshot%202025-12-26%20215642.png)
 
 ### 1.5.4 Parasitic Capacitance
 ![para cap](images/Screenshot%202025-12-26%20220844.png)
+
 - The gate capacitance decreases as you scale down technology and parasitic capacitance goes up upon scaling down.
 - One way to minimize parasitic capacitence is by inserting a lower K material in the gap between gate and source-drain contact.
 - Upon reducing K value, we get a lower effective capacitance. 
 
 ### 1.5.5 Device Scaling Using Layered Materials
 ![device scaling](images/Screenshot%202025-12-27%20092025.png)
+
 - We can use layered materials to modify the gate lenghts to 5nm. 
 - The main challenge faced in transistors is direct source to drain tunnelling, which prevents gate length scaling to short channels.
 - 2D materials can be deposited with atomic scale precision. For eg. a layer of MoS2 is about 0.65nm thich and can be placed on a wafer with precision. 
@@ -109,17 +117,20 @@ FEOL innovations affected design rules changes that resulted in modified ways to
 
 ### 1.5.5 Transistor Scaling to Sub 5nm Gate Lenghts
 ![sub 5nm](images/Screenshot%202025-12-27%20092900.png)
+
 - Ideally, charge leakage should be outside the channel, but it is observed both outside as well as inside the channel, which is a major problem in short channel transistors.
 - Upon scaling, problems such as low inplane dielectric constant arises. In order to fix this, the drain terminal cpacitnce should be lower than oxide capacitance.
 
 ### 1.5.6 MoS Transistor with 1nm Gate Length
 ![MoS 1nm](images/Screenshot%202025-12-27%20094118.png)
+
 - Transistors are made of MoS2 channel and 1nm, single walled carbon nanotube gate. 
 - The gate oxide is made up of ZrO2 (Zirconium Di-Oxide).
 - Such transistors have a on/off current ratio of approximately 10^6 and a near sub threshold swing of 65 mV/decade.
 
 ### 1.5.7 All 2-D MOSFET
 ![2D mosfet](images/Screenshot%202025-12-27%20094624.png)
+
 - 2D materials are atomically thin, precise and have no dangling bonds.
 
 - Electrical Characteristics of all 2D FET
@@ -130,6 +141,7 @@ FEOL innovations affected design rules changes that resulted in modified ways to
 
 ### 1.5.8 Body-Bias Effect
 ![TMDs](images/Screenshot%202025-12-27%20101148.png)
+
 - In planar transistors, the threshold voltage (Vt) can be changed due to body effect.
 - However. in FinFETs applying body effect is quite challenging. But by forming a fin by placing oxide between channel material and body, Vt scaling can be performed.
 - Along with that, channel potential can also be modified.
@@ -137,18 +149,24 @@ FEOL innovations affected design rules changes that resulted in modified ways to
 
 ### 1.5.9 Transistor Level Monolithics
 ![monolithics](images/Screenshot%202025-12-27%20101318.png)
+
 - Monolithic 3D two layer CMOS have N and P transistors placed on top of each other. thereby reducing the area upto 50%
+
 ![Area saving graph](images/Screenshot%202025-12-27%20101620.png)
 ![Monolithics ckt](images/Screenshot%202025-12-27%20101629.png)
+
 - For an inverter, the gain has to be greater than 1 to operate. From the graph, Gain = 1 at 150mV, which shows that device operates at low supply voltage.
 
 ### 1.5.10 Interconnects 
 ![interconnects](images/Screenshot%202025-12-27%20111214.png)
+
 - Dual Damascene Copper interconnects are successors of Al interconnects due to their high resistance
 - As technology shrinks down, the hole becomes narrower so we go to a single damascene process where via and metal are filled separatley.
 - We can replace Cu with other metals that require no barrier or thinner barriers.
 - Metals like Rutherium have low resistance, low feature size and do not require thick barriers.
+
 ![cu interconnects](images/Screenshot%202025-12-27%20112215.png)
+
 - Extended Cu interconnects are used as there is high resistance in normal interconnects due to barriers
 - Removing the top plate barrier, allows via resistance to reduce by 50%.
 
@@ -406,10 +424,10 @@ print line_regulation
 For the Bandgap Reference Circuit, we can varry the supply voltage from 0.7v to 1.4v
 
 # Acknowledgements and References 
-Kunal Gosh [LinkedIn](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)
-Soundarya Madhuri Royyuru [LinkedIn](https://www.linkedin.com/in/royyurumadhuri/)
-[Reference Repositary](https://github.com/arunkpv/vsd_asap7_workshop/blob/main/README.md)
-[Reference Repositary](https://github.com/RSMadhuri66/Bandgap-Reference-Circuit-with-SCMB-with-ASAP-7nm-PDK-)
+- Kunal Gosh [LinkedIn](https://www.linkedin.com/in/kunal-ghosh-vlsisystemdesign-com-28084836/)
+- Soundarya Madhuri Royyuru [LinkedIn](https://www.linkedin.com/in/royyurumadhuri/)
+- [Reference Repositary](https://github.com/arunkpv/vsd_asap7_workshop/blob/main/README.md)
+- [Reference Repositary](https://github.com/RSMadhuri66/Bandgap-Reference-Circuit-with-SCMB-with-ASAP-7nm-PDK-)
 
 
 
