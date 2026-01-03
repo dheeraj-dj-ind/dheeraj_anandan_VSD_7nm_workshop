@@ -372,7 +372,7 @@ The spice code for this is given [here](/bandgap/bandgap_dc_sim.spice)
 
 ### Transient Analysis
 
-The spice file for the transient analysis is [here](/bandgap/bangap_trans.spice)
+The spice file for the transient analysis is [here](/bandgap/bandgap_trans.spice)
 
 #### Observed Output
 
@@ -394,13 +394,13 @@ The spice file for the transient analysis is [here](/bandgap/bangap_trans.spice)
 
 ### Characterization Table
 
-| S.No. | Vdd (V) | Temp (°C) | Vref (mV) | Line Regulation (mV/V) | Startup Time |
-|-------|---------|-----------|-----------|-------------------------|--------------|
-| 1     | 0.8     | 27        | 143.9     | 205.63                  | -            |
-| 2     | 0.9     | 27        | 158.9     | 227.02                  | -            |
-| 3     | 1.0     | 27        | 101.2     | 252.57                  | -            |
-| 4     | 1.0     | -40       | 416.1     | 243.47                  | -            |
-| 5     | 1.0     | 125       | 219.0     | 279.29                  | -            |
+| S.No. | Vdd (V) | Temp (°C) | Vref (mV) | Line Regulation (mV/V)  | Startup Time (ns)|
+|-------|---------|-----------|-----------|-------------------------|------------------|
+| 1     | 0.8     | 27        | 143.9     | 205.63                  | 3.84             |
+| 2     | 0.9     | 27        | 158.9     | 227.02                  | 4.28             |
+| 3     | 1.0     | 27        | 101.2     | 252.57                  | 4.70             |
+| 4     | 1.0     | -40       | 416.1     | 243.47                  | 59.42            |
+| 5     | 1.0     | 125       | 219.0     | 279.29                  | 1.57             |
 
 
 - Temperature Sweep
